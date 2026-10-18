@@ -8,8 +8,13 @@
 /**
  * dom 加载完毕的5s后才开始执行脚本
  */
-window.onload = function () {
+console.log('[智慧树刷课] 插件已注入', location.href)
+if (document.readyState === 'complete') {
   setTimeout(() => begin(), 5000)
+} else {
+  window.addEventListener('load', function () {
+    setTimeout(() => begin(), 5000)
+  })
 }
 
 /**
@@ -23,12 +28,12 @@ async function begin() {
   // 60s内获取播放列表，若失败，则插件不能使用
   list = getElement('list')
   while (1) {
-    if (list !== null || count >= 12) break
+    if (list.length > 0 || count >= 12) break
     count++
     await wait1s(5)
     list = getElement('list')
   }
-  if (list !== null) { // 播放下一集
+  if (list.length > 0) { // 播放下一集
     playVideo(list)
   }
 
@@ -101,7 +106,7 @@ function background() {
   // 每10s检查视频是否播放完毕，是的话，刷新页面
   setInterval(() => {
     let video = getElement('video') // 需要不断的获取video元素
-    if (video.ended) {
+    if (video && video.ended) {
       console.log('正在刷新页面...')
       wait1s(1)
       window.location.reload()
@@ -131,9 +136,9 @@ function getElement(ele) {
   switch (ele) {
     case 'list':
       { // 视频列表
-        let list = document.getElementById('chapterList').getElementsByTagName('li')
-        if (list === null) console.log('网速太慢啦，无法获取视频播放列表，请刷新页面')
-        return list
+        let chapterList = document.getElementById('chapterList')
+        if (chapterList === null) return []
+        return chapterList.getElementsByTagName('li')
       }
     case 'video':
       { // 播放器
